@@ -1,4 +1,4 @@
-# Simpla Blog
+# Simple Blog
 
 ## About Project
 
