@@ -22,6 +22,8 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationGroup = 'Content';
+
     public static function form(Form $form): Form
     {
         return $form
@@ -29,7 +31,7 @@ class CategoryResource extends Resource
                 Forms\Components\TextInput::make('title')
                     ->required()
                     ->maxLength(2048)
-                    ->reactive()
+                    ->live(onBlur: true)
                     ->afterStateUpdated(function (Set $set, $state) {
                         $set('slug', Str::slug($state));
                     }),

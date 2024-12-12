@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('slug', 2048);
             $table->string('thumbnail')->nullable();
             $table->longText('body');
-            $table->datetime('published_at');
+            $table->datetime('published_at')->nullable();
+            $table->boolean('active')->default(true);
             $table->foreignIdFor(User::class, 'user_id');
             $table->timestamps();
         });

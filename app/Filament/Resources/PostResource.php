@@ -4,43 +4,73 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PostResource\Pages;
 use App\Filament\Resources\PostResource\RelationManagers;
+use App\Models\Category;
 use App\Models\Post;
 use Closure;
 use Filament\Forms;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Split;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
 
 class PostResource extends Resource
 {
     protected static ?string $model = Post::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
+    protected static ?string $navigationGroup = 'Content';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('title')
-                    ->required()
-                    ->maxLength(2048),
-                Forms\Components\TextInput::make('slug')
-                    ->required()
-                    ->maxLength(2048),
-                Forms\Components\FileUpload::make('thumbnail')
-                    ->image()
-                    ->imageEditor(),
-                Forms\Components\Textarea::make('body')
-                    ->required()
-                    ->columnSpanFull(),
-                Forms\Components\DateTimePicker::make('published_at')
-                    ->required(),
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required(),
+                Grid::make(2)
+                    ->schema([
+                        Section::make()
+                            ->schema([
+                                Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('title')
+                                            ->required()
+                                            ->maxLength(2048)
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function (Set $set, $state) {
+                                                $set('slug', Str::slug($state));
+                                            }),
+                                        Forms\Components\TextInput::make('slug')
+                                            ->required()
+                                            ->maxLength(2048),
+
+
+                                    ]),
+                                Forms\Components\RichEditor::make('body')
+                                    ->required()
+                                    ->columnSpanFull(),
+                                Forms\Components\Toggle::make('active')
+                                    ->required(),
+
+                                Forms\Components\DateTimePicker::make('published_at')
+                            ])->columnSpan(8),
+                        Section::make()
+                            ->schema([
+                                Forms\Components\Select::make('category_id')
+                                    ->label('Categories')
+                                    ->multiple()
+                                    ->relationship('categories', 'title')
+                                    ->required(),
+                                Forms\Components\FileUpload::make('thumbnail')
+                                    ->image()
+                                    ->imageEditor(),
+                            ])->columnSpan(4),
+                    ])->columns(12),
             ]);
     }
 
@@ -48,17 +78,19 @@ class PostResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('thumbnail'),
                 Tables\Columns\TextColumn::make('title')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('slug')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('thumbnail')
-                    ->searchable(),
+                Tables\Columns\IconColumn::make('active')
+                    ->sortable()
+                    ->boolean(),
                 Tables\Columns\TextColumn::make('published_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('user_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Creator')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
