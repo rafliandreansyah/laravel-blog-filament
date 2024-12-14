@@ -60,7 +60,7 @@ class PostController extends Controller
             ->where('active', '=', 1)
             ->whereDate('published_at', '<=', Carbon::now())
             ->whereDate('published_at', '>', $post->published_at)
-            ->orderBy('published_at', 'desc')
+            ->orderBy('published_at', 'asc')
             ->limit(1)
             ->first();
 
